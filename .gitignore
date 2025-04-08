@@ -1,0 +1,40 @@
+# Application Properties
+application.properties
+application-dev.properties
+application-prod.properties
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+
+# Build
+target/
+build/
+dist/
+*.jar
+*.war
+
+# Dependencies
+node_modules/
+.mvn/
+mvnw
+mvnw.cmd
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite
+
+# System Files
+.DS_Store
+Thumbs.db 
