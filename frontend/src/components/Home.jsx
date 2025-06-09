@@ -14,7 +14,7 @@ function Home() {
                         <Button variant="primary" size="lg">Get Started</Button>
                     </Link>
                     <Link to="/login">
-                        <Button variant="outline-primary" size="lg">Login</Button>
+                        <Button variant="light" className='text-dark border-0' size="lg">Login</Button>
                     </Link>
                 </div>
             </div>

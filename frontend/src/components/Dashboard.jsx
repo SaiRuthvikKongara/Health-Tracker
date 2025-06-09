@@ -12,7 +12,7 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
-import { FaWalking, FaWater, FaFire, FaHeartbeat, FaBed, FaLungs, FaSync } from 'react-icons/fa';
+import { FaWalking, FaWater, FaFire, FaHeartbeat, FaBed, FaLungs, FaSync, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa';
 
 ChartJS.register(
   CategoryScale,
@@ -41,10 +41,10 @@ const Dashboard = () => {
   });
 
   const [workoutData, setWorkoutData] = useState({
-    labels: [],
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     datasets: [{
-      label: 'Activity',
-      data: [],
+      label: 'Activity Level',
+      data: [65, 59, 80, 81, 56, 55, 40],
       backgroundColor: 'rgba(75, 192, 192, 0.2)',
       borderColor: 'rgb(75, 192, 192)',
       tension: 0.4
@@ -52,10 +52,10 @@ const Dashboard = () => {
   });
 
   const [nutritionData, setNutritionData] = useState({
-    labels: [],
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     datasets: [{
-      label: 'Calories',
-      data: [],
+      label: 'Calories Consumed',
+      data: [1800, 2100, 1900, 2200, 2000, 2300, 1700],
       backgroundColor: 'rgba(255, 99, 132, 0.2)',
       borderColor: 'rgb(255, 99, 132)',
       tension: 0.4
@@ -66,16 +66,20 @@ const Dashboard = () => {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const [recommendations, setRecommendations] = useState([]);
+
   useEffect(() => {
     fetchDashboardData();
     fetchUserProfile();
     fetchLatestMetrics();
+    generateRecommendations();
     
     // Set up auto-refresh every 30 seconds
     const refreshInterval = setInterval(() => {
       fetchDashboardData();
       fetchUserProfile();
       fetchLatestMetrics();
+      generateRecommendations();
     }, 30000);
 
     return () => clearInterval(refreshInterval);
@@ -89,6 +93,7 @@ const Dashboard = () => {
         fetchUserProfile(),
         fetchLatestMetrics()
       ]);
+      generateRecommendations();
     } finally {
       setIsRefreshing(false);
     }
@@ -181,13 +186,93 @@ const Dashboard = () => {
     }
   };
 
+  const generateRecommendations = () => {
+    const newRecommendations = [];
+    
+    // Water intake recommendation
+    if (healthMetrics.water < 2) {
+      newRecommendations.push({
+        type: 'warning',
+        message: 'Your water intake is below recommended levels. Try to drink at least 2L of water daily.',
+        icon: <FaExclamationTriangle className="text-warning" />
+      });
+    } else if (healthMetrics.water > 4) {
+      newRecommendations.push({
+        type: 'warning',
+        message: 'Your water intake is above recommended levels. Drinking more than 4L daily can be harmful. Consider reducing your intake.',
+        icon: <FaExclamationTriangle className="text-warning" />
+      });
+    } else {
+      newRecommendations.push({
+        type: 'success',
+        message: 'Great job on maintaining good water intake!',
+        icon: <FaCheckCircle className="text-success" />
+      });
+    }
+
+    // Sleep recommendation
+    if (healthMetrics.sleep < 7) {
+      newRecommendations.push({
+        type: 'warning',
+        message: 'You need more sleep. Aim for 7-9 hours of sleep per night.',
+        icon: <FaExclamationTriangle className="text-warning" />
+      });
+    } else {
+      newRecommendations.push({
+        type: 'success',
+        message: 'Good sleep duration! Keep it up.',
+        icon: <FaCheckCircle className="text-success" />
+      });
+    }
+
+    // Activity level recommendation
+    const avgActivity = workoutData.datasets[0].data.reduce((a, b) => a + b, 0) / workoutData.datasets[0].data.length;
+    if (avgActivity < 50) {
+      newRecommendations.push({
+        type: 'warning',
+        message: 'Your activity level is low. Try to increase your daily physical activity.',
+        icon: <FaExclamationTriangle className="text-warning" />
+      });
+    } else {
+      newRecommendations.push({
+        type: 'success',
+        message: 'Excellent activity level! You\'re maintaining good physical fitness.',
+        icon: <FaCheckCircle className="text-success" />
+      });
+    }
+
+    // Calorie intake recommendation
+    const avgCalories = nutritionData.datasets[0].data.reduce((a, b) => a + b, 0) / nutritionData.datasets[0].data.length;
+    if (avgCalories > 2500) {
+      newRecommendations.push({
+        type: 'warning',
+        message: 'Your calorie intake is high. Consider reducing portion sizes.',
+        icon: <FaExclamationTriangle className="text-warning" />
+      });
+    } else if (avgCalories < 1500) {
+      newRecommendations.push({
+        type: 'warning',
+        message: 'Your calorie intake is low. Make sure you\'re eating enough to maintain energy levels.',
+        icon: <FaExclamationTriangle className="text-warning" />
+      });
+    } else {
+      newRecommendations.push({
+        type: 'success',
+        message: 'Your calorie intake is within the recommended range.',
+        icon: <FaCheckCircle className="text-success" />
+      });
+    }
+
+    setRecommendations(newRecommendations);
+  };
+
   return (
     <Container fluid className="p-4">
       <Row className="mb-4">
         <Col>
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h4 className="text-muted mb-1">Good Morning</h4>
+              <h4 className="text-muted mb-1">Good AfterNoon</h4>
               <h2 className="mb-0">Welcome Back 👋</h2>
             </div>
             <div className="d-flex align-items-center">
@@ -283,71 +368,103 @@ const Dashboard = () => {
         </Col>
       </Row>
 
-      <Row>
-        <Col md={8}>
-          <Row className="mb-4">
-            <Col md={12}>
-              <Card>
-                <Card.Body>
-                  <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h5 className="mb-0">Workout Activity</h5>
-                    <select className="form-select form-select-sm w-auto">
-                      <option>Weekly</option>
-                      <option>Monthly</option>
-                    </select>
-                  </div>
-                  <Line 
-                    data={workoutData}
-                    options={{
-                      responsive: true,
-                      plugins: {
-                        legend: {
-                          display: false
-                        }
-                      },
-                      scales: {
-                        y: {
-                          beginAtZero: true
-                        }
+      <Row className="mb-4">
+        <Col md={6}>
+          <Card className="h-100">
+            <Card.Header className="bg-primary text-white">
+              <h5 className="mb-0">Workout Activity</h5>
+            </Card.Header>
+            <Card.Body>
+              <Line
+                data={workoutData}
+                options={{
+                  responsive: true,
+                  plugins: {
+                    legend: {
+                      position: 'top',
+                    },
+                    title: {
+                      display: true,
+                      text: 'Weekly Activity Level'
+                    }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      title: {
+                        display: true,
+                        text: 'Activity Level'
                       }
-                    }}
-                  />
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
-          <Row>
-            <Col md={12}>
-              <Card>
-                <Card.Body>
-                  <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h5 className="mb-0">Nutrition Tracking</h5>
-                    <select className="form-select form-select-sm w-auto">
-                      <option>Weekly</option>
-                      <option>Monthly</option>
-                    </select>
-                  </div>
-                  <Line 
-                    data={nutritionData}
-                    options={{
-                      responsive: true,
-                      plugins: {
-                        legend: {
-                          display: false
-                        }
-                      },
-                      scales: {
-                        y: {
-                          beginAtZero: true
-                        }
-                      }
-                    }}
-                  />
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
+                    }
+                  }
+                }}
+              />
+            </Card.Body>
+          </Card>
         </Col>
+        
+        <Col md={6}>
+          <Card className="h-100">
+            <Card.Header className="bg-danger text-white">
+              <h5 className="mb-0">Nutrition Tracking</h5>
+            </Card.Header>
+            <Card.Body>
+              <Line
+                data={nutritionData}
+                options={{
+                  responsive: true,
+                  plugins: {
+                    legend: {
+                      position: 'top',
+                    },
+                    title: {
+                      display: true,
+                      text: 'Weekly Calorie Intake'
+                    }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      title: {
+                        display: true,
+                        text: 'Calories'
+                      }
+                    }
+                  }
+                }}
+              />
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row className="mb-4">
+        <Col md={12}>
+          <Card>
+            <Card.Header className="bg-info text-white">
+              <h5 className="mb-0">Health Recommendations</h5>
+            </Card.Header>
+            <Card.Body>
+              <Row>
+                {recommendations.map((rec, index) => (
+                  <Col md={6} key={index} className="mb-3">
+                    <div className={`d-flex align-items-center p-3 rounded ${rec.type === 'warning' ? 'bg-warning bg-opacity-10' : 'bg-success bg-opacity-10'}`}>
+                      <div className="me-3">
+                        {rec.icon}
+                      </div>
+                      <div>
+                        <p className="mb-0">{rec.message}</p>
+                      </div>
+                    </div>
+                  </Col>
+                ))}
+              </Row>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row>
         <Col md={4}>
           <Card>
             <Card.Body>

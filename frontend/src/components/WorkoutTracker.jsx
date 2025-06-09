@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Table } from 'react-bootstrap';
-import { FaPlus, FaTrash } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa';
 import axios from 'axios';
 
 const WorkoutTracker = () => {
@@ -20,9 +20,11 @@ const WorkoutTracker = () => {
     duration: '',
     notes: ''
   });
+  const [recommendations, setRecommendations] = useState([]);
 
   useEffect(() => {
     fetchWorkouts();
+    generateWorkoutRecommendations();
   }, []);
 
   const fetchWorkouts = async () => {
@@ -91,6 +93,78 @@ const WorkoutTracker = () => {
       ...newWorkout,
       exercises: updatedExercises
     });
+  };
+
+  const generateWorkoutRecommendations = () => {
+    const newRecommendations = [];
+    
+    // Check workout frequency
+    const weeklyWorkouts = workouts.filter(w => {
+      const workoutDate = new Date(w.date);
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return workoutDate >= weekAgo;
+    }).length;
+
+    if (weeklyWorkouts < 3) {
+      newRecommendations.push({
+        type: 'warning',
+        message: 'You should aim for at least 3 workouts per week for optimal health benefits.',
+        icon: <FaExclamationTriangle className="text-warning" />
+      });
+    } else if (weeklyWorkouts > 6) {
+      newRecommendations.push({
+        type: 'warning',
+        message: 'You might be overtraining. Consider taking more rest days.',
+        icon: <FaExclamationTriangle className="text-warning" />
+      });
+    } else {
+      newRecommendations.push({
+        type: 'success',
+        message: 'Great job maintaining a consistent workout schedule!',
+        icon: <FaCheckCircle className="text-success" />
+      });
+    }
+
+    // Check workout duration
+    const avgDuration = workouts.reduce((sum, w) => sum + parseInt(w.duration || 0), 0) / workouts.length;
+    if (avgDuration < 30) {
+      newRecommendations.push({
+        type: 'warning',
+        message: 'Try to increase your workout duration to at least 30 minutes per session.',
+        icon: <FaExclamationTriangle className="text-warning" />
+      });
+    } else if (avgDuration > 120) {
+      newRecommendations.push({
+        type: 'warning',
+        message: 'Your workouts might be too long. Consider breaking them into shorter sessions.',
+        icon: <FaExclamationTriangle className="text-warning" />
+      });
+    } else {
+      newRecommendations.push({
+        type: 'success',
+        message: 'Your workout duration is within the recommended range.',
+        icon: <FaCheckCircle className="text-success" />
+      });
+    }
+
+    // Check workout variety
+    const workoutTypes = new Set(workouts.map(w => w.workoutType));
+    if (workoutTypes.size < 2) {
+      newRecommendations.push({
+        type: 'warning',
+        message: 'Try to include different types of workouts (strength, cardio, flexibility) for balanced fitness.',
+        icon: <FaExclamationTriangle className="text-warning" />
+      });
+    } else {
+      newRecommendations.push({
+        type: 'success',
+        message: 'Good variety in your workout types!',
+        icon: <FaCheckCircle className="text-success" />
+      });
+    }
+
+    setRecommendations(newRecommendations);
   };
 
   return (
@@ -289,6 +363,32 @@ const WorkoutTracker = () => {
                   </Card.Body>
                 </Card>
               ))}
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row className="mb-4">
+        <Col md={12}>
+          <Card>
+            <Card.Header className="bg-info text-white">
+              <h5 className="mb-0">Workout Recommendations</h5>
+            </Card.Header>
+            <Card.Body>
+              <Row>
+                {recommendations.map((rec, index) => (
+                  <Col md={6} key={index} className="mb-3">
+                    <div className={`d-flex align-items-center p-3 rounded ${rec.type === 'warning' ? 'bg-warning bg-opacity-10' : 'bg-success bg-opacity-10'}`}>
+                      <div className="me-3">
+                        {rec.icon}
+                      </div>
+                      <div>
+                        <p className="mb-0">{rec.message}</p>
+                      </div>
+                    </div>
+                  </Col>
+                ))}
+              </Row>
             </Card.Body>
           </Card>
         </Col>
