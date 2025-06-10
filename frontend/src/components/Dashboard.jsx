@@ -109,7 +109,7 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
       const response = await axios.get('http://localhost:8080/api/health-metrics/latest', {
         headers: {
-          'Authorization': Bearer ${token}
+          'Authorization': `Bearer ${token}`
         }
       });
       setHealthMetrics(response.data || {
@@ -128,7 +128,7 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
       const response = await axios.get('http://localhost:8080/api/dashboard', {
         headers: {
-          'Authorization': Bearer ${token}
+          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -431,7 +431,7 @@ const Dashboard = () => {
               <Row>
                 {recommendations.map((rec, index) => (
                   <Col md={6} key={index} className="mb-3">
-                    <div className={d-flex align-items-center p-3 rounded ${rec.type === 'warning' ? 'bg-warning bg-opacity-10' : 'bg-success bg-opacity-10'}}>
+                    <div className={`d-flex align-items-center p-3 rounded ${rec.type === 'warning' ? 'bg-warning bg-opacity-10' : 'bg-success bg-opacity-10'}`}>
                       <div className="me-3">
                         {rec.icon}
                       </div>
