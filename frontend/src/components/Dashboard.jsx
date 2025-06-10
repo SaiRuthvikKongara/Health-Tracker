@@ -64,9 +64,14 @@ const Dashboard = () => {
 
   const [goals, setGoals] = useState([]);
 
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
   const [recommendations, setRecommendations] = useState([]);
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  };
 
   useEffect(() => {
     fetchDashboardData();
@@ -85,26 +90,12 @@ const Dashboard = () => {
     return () => clearInterval(refreshInterval);
   }, []);
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      await Promise.all([
-        fetchDashboardData(),
-        fetchUserProfile(),
-        fetchLatestMetrics()
-      ]);
-      generateRecommendations();
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
   const fetchUserProfile = async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get('http://localhost:8080/api/users/profile', {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': Bearer ${token}
         }
       });
       setUserData(response.data);
@@ -118,7 +109,7 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
       const response = await axios.get('http://localhost:8080/api/health-metrics/latest', {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': Bearer ${token}
         }
       });
       setHealthMetrics(response.data || {
@@ -137,7 +128,7 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
       const response = await axios.get('http://localhost:8080/api/dashboard', {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': Bearer ${token}
         }
       });
       
@@ -272,18 +263,10 @@ const Dashboard = () => {
         <Col>
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <h4 className="text-muted mb-1">Good AfterNoon</h4>
+              <h4 className="text-muted mb-1">{getGreeting()}</h4>
               <h2 className="mb-0">Welcome Back 👋</h2>
             </div>
             <div className="d-flex align-items-center">
-              <Button 
-                variant="outline-primary" 
-                className="me-3"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-              >
-                <FaSync className={isRefreshing ? 'fa-spin' : ''} /> Refresh
-              </Button>
               <div className="text-end">
                 <div className="d-flex align-items-center">
                   <div className="me-4">
@@ -448,7 +431,7 @@ const Dashboard = () => {
               <Row>
                 {recommendations.map((rec, index) => (
                   <Col md={6} key={index} className="mb-3">
-                    <div className={`d-flex align-items-center p-3 rounded ${rec.type === 'warning' ? 'bg-warning bg-opacity-10' : 'bg-success bg-opacity-10'}`}>
+                    <div className={d-flex align-items-center p-3 rounded ${rec.type === 'warning' ? 'bg-warning bg-opacity-10' : 'bg-success bg-opacity-10'}}>
                       <div className="me-3">
                         {rec.icon}
                       </div>
@@ -463,42 +446,8 @@ const Dashboard = () => {
           </Card>
         </Col>
       </Row>
-
-      <Row>
-        <Col md={4}>
-          <Card>
-            <Card.Body>
-              <h5 className="mb-4">Your Goals</h5>
-              {Array.isArray(goals) && goals.length > 0 ? (
-                goals.map(goal => (
-                  <div key={goal.id} className="mb-4">
-                    <div className="d-flex align-items-center mb-2">
-                      <div className="flex-grow-1">
-                        <h6 className="mb-1">{goal.description}</h6>
-                        <div className="progress" style={{ height: '6px' }}>
-                          <div
-                            className="progress-bar"
-                            role="progressbar"
-                            style={{ 
-                              width: `${goal.progress}%`,
-                              backgroundColor: goal.progress >= 100 ? '#28a745' : '#007bff'
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <span className="ms-3 text-primary">{goal.progress}%</span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-muted text-center">No goals set yet</p>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
     </Container>
   );
 };
 
-export default Dashboard; 
+export default Dashboard;
