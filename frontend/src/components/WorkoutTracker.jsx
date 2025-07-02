@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Button, Table } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Table, Toast } from 'react-bootstrap';
 import { FaPlus, FaTrash, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa';
 import axios from 'axios';
 
@@ -21,6 +21,9 @@ const WorkoutTracker = () => {
     notes: ''
   });
   const [recommendations, setRecommendations] = useState([]);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('success');
 
   useEffect(() => {
     fetchWorkouts();
@@ -37,7 +40,9 @@ const WorkoutTracker = () => {
       });
       setWorkouts(response.data);
     } catch (error) {
-      console.error('Error fetching workouts:', error);
+      setToastMessage('Failed to fetch workout history');
+      setToastVariant('danger');
+      setShowToast(true);
     }
   };
 
@@ -67,8 +72,14 @@ const WorkoutTracker = () => {
         date: new Date().toISOString(),
         exercises: []
       });
+
+      setToastMessage('Workout recorded successfully!');
+      setToastVariant('success');
+      setShowToast(true);
     } catch (error) {
-      console.error('Error creating workout:', error);
+      setToastMessage(error.response?.data?.message || 'Failed to record workout');
+      setToastVariant('danger');
+      setShowToast(true);
     }
   };
 
@@ -170,10 +181,12 @@ const WorkoutTracker = () => {
   return (
     <Container className="py-4">
       <h2 className="mb-4">Workout Tracker</h2>
-      <Row>
+      <Row className="d-flex align-items-start">
         <Col md={6}>
           <Card className="mb-4">
-            <Card.Header>Log New Workout</Card.Header>
+            <Card.Header className="bg-white">
+              <h4 className="mb-0">Log New Workout</h4>
+            </Card.Header>
             <Card.Body>
               <Form onSubmit={handleWorkoutSubmit}>
                 <Form.Group className="mb-3">
@@ -330,8 +343,10 @@ const WorkoutTracker = () => {
 
         <Col md={6}>
           <Card>
-            <Card.Header>Recent Workouts</Card.Header>
-            <Card.Body>
+            <Card.Header className="bg-white">
+              <h4 className="mb-0">Recent Workouts</h4>
+            </Card.Header>
+            <Card.Body style={{ maxHeight: '870px', overflowY: 'auto' }}>
               {workouts.map(workout => (
                 <Card key={workout.id} className="mb-3">
                   <Card.Header>
@@ -368,11 +383,11 @@ const WorkoutTracker = () => {
         </Col>
       </Row>
 
-      <Row className="mb-4">
+      <Row className="mt-4">
         <Col md={12}>
           <Card>
-            <Card.Header className="bg-info text-white">
-              <h5 className="mb-0">Workout Recommendations</h5>
+            <Card.Header className="bg-white">
+              <h4 className="mb-0">Workout Recommendations</h4>
             </Card.Header>
             <Card.Body>
               <Row>
@@ -393,6 +408,26 @@ const WorkoutTracker = () => {
           </Card>
         </Col>
       </Row>
+
+      <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 1000 }}>
+        <Toast 
+          show={showToast} 
+          onClose={() => setShowToast(false)} 
+          delay={3000} 
+          autohide
+          bg={toastVariant}
+          className="text-white"
+        >
+          <Toast.Header closeButton>
+            <strong className="me-auto">
+              {toastVariant === 'success' ? 'Success' : 'Error'}
+            </strong>
+          </Toast.Header>
+          <Toast.Body>
+            {toastMessage}
+          </Toast.Body>
+        </Toast>
+      </div>
     </Container>
   );
 };

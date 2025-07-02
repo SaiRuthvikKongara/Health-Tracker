@@ -11,8 +11,33 @@ export const AuthProvider = ({ children }) => {
 
     // Configure axios defaults
     axios.defaults.baseURL = 'http://localhost:8080';
-    axios.defaults.withCredentials = true;
     axios.defaults.headers.common['Content-Type'] = 'application/json';
+
+    // Add request interceptor to add token to all requests
+    axios.interceptors.request.use(
+        (config) => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+            return config;
+        },
+        (error) => {
+            return Promise.reject(error);
+        }
+    );
+
+    // Add response interceptor to handle token expiration and errors
+    axios.interceptors.response.use(
+        (response) => response,
+        (error) => {
+            if (error.response?.status === 401) {
+                clearAuthData();
+                window.location.href = '/login';
+            }
+            return Promise.reject(error);
+        }
+    );
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -24,7 +49,7 @@ export const AuthProvider = ({ children }) => {
                     setUser(JSON.parse(userData));
                 } catch (e) {
                     console.error('Error parsing user data:', e);
-                    logout();
+                    clearAuthData();
                 }
             }
         }
@@ -49,9 +74,16 @@ export const AuthProvider = ({ children }) => {
     const login = async (credentials) => {
         try {
             const response = await axios.post('/api/auth/login', credentials);
-            const { token, ...userInfo } = response.data;
-            handleAuthSuccess(token, userInfo);
-            return { success: true };
+            if (response.data && response.data.token) {
+                const { token, ...userInfo } = response.data;
+                handleAuthSuccess(token, userInfo);
+                return { success: true };
+            } else {
+                return {
+                    success: false,
+                    error: 'Invalid response from server'
+                };
+            }
         } catch (error) {
             console.error('Login error:', error);
             return {

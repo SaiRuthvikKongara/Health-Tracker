@@ -1,81 +1,124 @@
-import React, { useState } from 'react';
-import { Form, Button, Container, Row, Col, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Card, Form, Button, Toast } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-  });
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
-  const { login } = useAuth();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+    const [toastVariant, setToastVariant] = useState('success');
+    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
+    const { login, user } = useAuth();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+    useEffect(() => {
+        // If user is already logged in, redirect to dashboard
+        if (user) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [user, navigate]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        try {
+            const result = await login({ email, password });
+            if (result.success) {
+                setToastMessage('Login successful! Redirecting...');
+                setToastVariant('success');
+                setShowToast(true);
+                // Add a small delay to ensure the token is stored
+                setTimeout(() => {
+                    navigate('/dashboard', { replace: true });
+                }, 1000);
+            } else {
+                setToastMessage(result.error || 'Login failed. Please try again.');
+                setToastVariant('danger');
+                setShowToast(true);
+            }
+        } catch (error) {
+            setToastMessage(error.response?.data?.message || 'Login failed. Please try again.');
+            setToastVariant('danger');
+            setShowToast(true);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-    try {
-      const result = await login(formData);
-      if (result.success) {
-        navigate('/dashboard');
-      } else {
-        setError(result.error);
-      }
-    } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
-    }
-  };
+    return (
+        <Container className="py-5">
+            <Row className="justify-content-center">
+                <Col md={6}>
+                    <Card className="shadow">
+                        <Card.Body className="p-5">
+                            <h2 className="text-center mb-4">Login</h2>
+                            <Form onSubmit={handleSubmit}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Email</Form.Label>
+                                    <Form.Control
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                        placeholder="Enter your email"
+                                    />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Password</Form.Label>
+                                    <Form.Control
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        placeholder="Enter your password"
+                                    />
+                                </Form.Group>
+                                <Button 
+                                    variant="primary" 
+                                    type="submit" 
+                                    className="w-100 mb-3"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? 'Logging in...' : 'Login'}
+                                </Button>
+                                <div className="text-center">
+                                    <p className="mb-0">
+                                        Don't have an account?{' '}
+                                        <Link to="/register">Register here</Link>
+                                    </p>
+                                </div>
+                            </Form>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
 
-  return (
-    <Container>
-      <Row className="justify-content-md-center mt-5">
-        <Col md={6}>
-          <div className="p-4 bg-white rounded shadow">
-            <h2 className="text-center mb-4">Login</h2>
-            {error && <Alert variant="danger">{error}</Alert>}
-            <Form onSubmit={handleSubmit}>
-              <Form.Group className="mb-3">
-                <Form.Label>Username</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  required
-                  placeholder="Enter username"
-                />
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  placeholder="Enter password"
-                />
-              </Form.Group>
-
-              <Button variant="primary" type="submit" className="w-100">
-                Login
-              </Button>
-            </Form>
-          </div>
-        </Col>
-      </Row>
-    </Container>
-  );
+            <Toast
+                show={showToast}
+                onClose={() => setShowToast(false)}
+                delay={3000}
+                autohide
+                style={{
+                    position: 'fixed',
+                    top: 20,
+                    right: 20,
+                    zIndex: 1000
+                }}
+                bg={toastVariant}
+            >
+                <Toast.Header closeButton>
+                    <strong className="me-auto">
+                        {toastVariant === 'success' ? 'Success' : 'Error'}
+                    </strong>
+                </Toast.Header>
+                <Toast.Body className="text-white">
+                    {toastMessage}
+                </Toast.Body>
+            </Toast>
+        </Container>
+    );
 };
 
 export default Login; 

@@ -39,29 +39,29 @@ const NutritionTracker = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post('http://localhost:8080/api/nutrition', {
+            const mealData = {
                 mealType,
                 foodName,
-                portionSize: Number(portionSize),
+                portionSize: parseFloat(portionSize),
                 portionUnit,
-                calories: Number(calories),
-                protein: Number(protein),
-                carbohydrates: Number(carbs),
-                fats: Number(fats),
-                fiber: Number(fiber),
-                sugar: Number(sugar),
-                sodium: Number(sodium),
+                calories: parseFloat(calories),
+                protein: parseFloat(protein),
+                carbohydrates: parseFloat(carbs),
+                fats: parseFloat(fats),
+                fiber: parseFloat(fiber),
+                sugar: parseFloat(sugar),
+                sodium: parseFloat(sodium),
                 notes,
                 date: new Date().toISOString()
-            }, {
+            };
+
+            await axios.post('http://localhost:8080/api/nutrition', mealData, {
                 headers: {
+                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 }
             });
-            
-            // Add the new meal to the list
-            setMeals([response.data, ...meals]);
-            
+
             // Reset form
             setMealType('');
             setFoodName('');
@@ -75,18 +75,23 @@ const NutritionTracker = () => {
             setSugar('');
             setSodium('');
             setNotes('');
+
+            // Refresh meals
+            fetchMeals();
         } catch (error) {
-            console.error('Error logging meal:', error);
+            console.error('Error adding meal:', error);
         }
     };
 
     return (
         <Container className="py-4">
             <h2 className="mb-4">Nutrition Tracker</h2>
-            <Row>
+            <Row className="d-flex align-items-start">
                 <Col md={6}>
                     <Card className="mb-4">
-                        <Card.Header>Log New Meal</Card.Header>
+                        <Card.Header className="bg-white">
+                            <h4 className="mb-0">Log New Meal</h4>
+                        </Card.Header>
                         <Card.Body>
                             <Form onSubmit={handleSubmit}>
                                 <Form.Group className="mb-3">
@@ -130,21 +135,17 @@ const NutritionTracker = () => {
                                     </Col>
                                     <Col>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Portion Unit</Form.Label>
+                                            <Form.Label>Unit</Form.Label>
                                             <Form.Select
                                                 value={portionUnit}
                                                 onChange={(e) => setPortionUnit(e.target.value)}
                                                 required
                                             >
                                                 <option value="">Select unit</option>
-                                                <option value="g">Grams (g)</option>
-                                                <option value="ml">Milliliters (ml)</option>
-                                                <option value="oz">Ounces (oz)</option>
-                                                <option value="cup">Cup</option>
-                                                <option value="tbsp">Tablespoon</option>
-                                                <option value="tsp">Teaspoon</option>
-                                                <option value="piece">Piece</option>
-                                                <option value="serving">Serving</option>
+                                                <option value="g">grams</option>
+                                                <option value="oz">ounces</option>
+                                                <option value="ml">milliliters</option>
+                                                <option value="cup">cups</option>
                                             </Form.Select>
                                         </Form.Group>
                                     </Col>
@@ -257,8 +258,10 @@ const NutritionTracker = () => {
 
                 <Col md={6}>
                     <Card>
-                        <Card.Header>Recent Meals</Card.Header>
-                        <Card.Body>
+                        <Card.Header className="bg-white">
+                            <h4 className="mb-0">Recent Meals</h4>
+                        </Card.Header>
+                        <Card.Body style={{ maxHeight: '795px', overflowY: 'auto' }}>
                             {meals.length === 0 ? (
                                 <p className="text-muted">No meals logged yet</p>
                             ) : (

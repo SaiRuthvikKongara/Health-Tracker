@@ -17,14 +17,11 @@ function Navigation() {
   return (
     <Navbar bg="light" expand="lg" className="mb-4">
       <Container>
-        <Navbar.Brand as={Link} to="/">HealthTracker</Navbar.Brand>
+        <Navbar.Brand as={Link} >HealthTracker</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link as={Link} to="/" className={location.pathname === '/' ? 'active' : ''}>
-              <FaHome className="me-1" /> Home
-            </Nav.Link>
-            {user && (
+            {user ? (
               <>
                 <Nav.Link as={Link} to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>
                   <FaChartLine className="me-1" /> Dashboard
@@ -45,6 +42,10 @@ function Navigation() {
                   <FaUser className="me-1" /> Profile
                 </Nav.Link>
               </>
+            ) : (
+              <Nav.Link as={Link} to="/" className={location.pathname === '/' ? 'active' : ''}>
+                <FaHome className="me-1" /> Home
+              </Nav.Link>
             )}
           </Nav>
           <Nav>

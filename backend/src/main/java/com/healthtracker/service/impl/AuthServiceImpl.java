@@ -9,6 +9,7 @@ import com.healthtracker.repository.UserRepository;
 import com.healthtracker.service.AuthService;
 import com.healthtracker.security.JwtTokenProvider;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -63,14 +64,26 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+        try {
+            // First find the user by email
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            // Then authenticate using username and password
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(user.getUsername(), request.getPassword()));
 
-        String token = jwtTokenProvider.generateToken((UserDetails) authentication.getPrincipal());
-        return createAuthResponse(user, token);
+            if (authentication.isAuthenticated()) {
+                String token = jwtTokenProvider.generateToken((UserDetails) authentication.getPrincipal());
+                return createAuthResponse(user, token);
+            } else {
+                throw new BadCredentialsException("Invalid email or password");
+            }
+        } catch (BadCredentialsException e) {
+            throw new BadCredentialsException("Invalid email or password");
+        } catch (Exception e) {
+            throw new RuntimeException("Authentication failed", e);
+        }
     }
 
     @Override
