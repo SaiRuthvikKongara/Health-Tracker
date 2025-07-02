@@ -41,6 +41,10 @@ const Register = () => {
     });
   }, [formData.password]);
 
+  const extractUsername = (email) => {
+    return email.split('@')[0];
+  };
+
   const handleNext = (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
@@ -57,16 +61,8 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      setToastMessage('Passwords do not match');
-      setToastVariant('danger');
-      setShowToast(true);
-      return;
-    }
-
     try {
-      const username = formData.email.split('@')[0];
-      
+      const username = extractUsername(formData.email);
       const response = await axios.post('http://localhost:8080/api/auth/register', {
         username,
         email: formData.email,
@@ -121,157 +117,153 @@ const Register = () => {
         </Card.Header>
         <Card.Body>
           {error && <Alert variant="danger">{error}</Alert>}
-          
-          {step === 1 ? (
-            <Form onSubmit={handleNext}>
-              <Form.Group className="mb-3">
-                <Form.Label>Email</Form.Label>
-                <Form.Control
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
+          <Form onSubmit={step === 1 ? handleNext : handleSubmit}>
+            {step === 1 ? (
+              <>
+                <Form.Group className="mb-3">
+                  <Form.Label>Email</Form.Label>
+                  <Form.Control
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-                <div className="mt-2">
-                  <PasswordRequirement 
-                    met={passwordChecks.hasSpecialChar} 
-                    text="Contains at least one special character"
+                <Form.Group className="mb-3">
+                  <Form.Label>Password</Form.Label>
+                  <Form.Control
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
                   />
-                  <PasswordRequirement 
-                    met={passwordChecks.hasNumber} 
-                    text="Contains at least one number"
+                  <div className="mt-2">
+                    <PasswordRequirement 
+                      met={passwordChecks.hasSpecialChar} 
+                      text="Contains at least one special character"
+                    />
+                    <PasswordRequirement 
+                      met={passwordChecks.hasNumber} 
+                      text="Contains at least one number"
+                    />
+                    <PasswordRequirement 
+                      met={passwordChecks.hasMinLength} 
+                      text="At least 8 characters long"
+                    />
+                    <PasswordRequirement 
+                      met={passwordChecks.hasUpperCase} 
+                      text="Contains uppercase letter"
+                    />
+                    <PasswordRequirement 
+                      met={passwordChecks.hasLowerCase} 
+                      text="Contains lowercase letter"
+                    />
+                  </div>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Confirm Password</Form.Label>
+                  <Form.Control
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
                   />
-                  <PasswordRequirement 
-                    met={passwordChecks.hasMinLength} 
-                    text="At least 8 characters long"
+                </Form.Group>
+
+                <Button variant="primary" type="submit" className="w-100">
+                  Next
+                </Button>
+              </>
+            ) : (
+              <>
+                <Form.Group className="mb-3">
+                  <Form.Label>First Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    required
                   />
-                  <PasswordRequirement 
-                    met={passwordChecks.hasUpperCase} 
-                    text="Contains uppercase letter"
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Last Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
                   />
-                  <PasswordRequirement 
-                    met={passwordChecks.hasLowerCase} 
-                    text="Contains lowercase letter"
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Age</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="age"
+                    value={formData.age}
+                    onChange={handleChange}
+                    required
                   />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Height (in feet)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    step="0.01"
+                    name="height"
+                    value={formData.height}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Weight (in kg)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    step="0.1"
+                    name="weight"
+                    value={formData.weight}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Gender</Form.Label>
+                  <Form.Select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select gender</option>
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                    <option value="OTHER">Other</option>
+                  </Form.Select>
+                </Form.Group>
+
+                <div className="d-flex gap-2">
+                  <Button variant="secondary" onClick={() => setStep(1)} className="w-50">
+                    Back
+                  </Button>
+                  <Button variant="primary" type="submit" className="w-50">
+                    Register
+                  </Button>
                 </div>
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Confirm Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
-
-              <Button 
-                variant="primary" 
-                type="submit" 
-                className="w-100"
-                disabled={!Object.values(passwordChecks).every(check => check)}
-              >
-                Next
-              </Button>
-            </Form>
-          ) : (
-            <Form onSubmit={handleSubmit}>
-              <Form.Group className="mb-3">
-                <Form.Label>First Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Last Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Age</Form.Label>
-                <Form.Control
-                  type="number"
-                  name="age"
-                  value={formData.age}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Height (in feet)</Form.Label>
-                <Form.Control
-                  type="number"
-                  step="0.01"
-                  name="height"
-                  value={formData.height}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Weight (in kg)</Form.Label>
-                <Form.Control
-                  type="number"
-                  step="0.1"
-                  name="weight"
-                  value={formData.weight}
-                  onChange={handleChange}
-                  required
-                />
-              </Form.Group>
-
-              <Form.Group className="mb-3">
-                <Form.Label>Gender</Form.Label>
-                <Form.Select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select gender</option>
-                  <option value="MALE">Male</option>
-                  <option value="FEMALE">Female</option>
-                  <option value="OTHER">Other</option>
-                </Form.Select>
-              </Form.Group>
-
-              <div className="d-flex gap-2">
-                <Button variant="secondary" onClick={() => setStep(1)} className="w-50">
-                  Back
-                </Button>
-                <Button variant="primary" type="submit" className="w-50">
-                  Register
-                </Button>
-              </div>
-            </Form>
-          )}
+              </>
+            )}
+          </Form>
         </Card.Body>
       </Card>
 
