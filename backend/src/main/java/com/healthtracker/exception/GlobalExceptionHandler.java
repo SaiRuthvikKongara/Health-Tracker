@@ -28,7 +28,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException ex) {
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .message("Invalid username or password")
+                .message("Invalid email or password")
                 .error("Bad Credentials")
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .build();

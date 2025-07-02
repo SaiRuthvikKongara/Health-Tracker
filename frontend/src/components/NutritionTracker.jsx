@@ -315,10 +315,12 @@ const NutritionTracker = () => {
   return (
     <Container className="py-4">
       <h2 className="mb-4">Nutrition Tracker</h2>
-      <Row>
+      <Row className="d-flex align-items-start">
         <Col md={6}>
           <Card className="mb-4">
-            <Card.Header>Log New Meal</Card.Header>
+            <Card.Header className="bg-white">
+              <h4 className="mb-0">Log New Meal</h4>
+            </Card.Header>
             <Card.Body>
               <Form onSubmit={handleLogSubmit}>
                 <Form.Group className="mb-3">
@@ -398,8 +400,10 @@ const NutritionTracker = () => {
         </Col>
 
         <Col md={6}>
-          <Card className="mb-4">
-            <Card.Header>Today's Nutrition Summary</Card.Header>
+          <Card>
+            <Card.Header className="bg-white">
+              <h4 className="mb-0">Today's Nutrition Summary</h4>
+            </Card.Header>
             <Card.Body>
               <Table striped bordered hover>
                 <tbody>
@@ -436,9 +440,11 @@ const NutritionTracker = () => {
             </Card.Body>
           </Card>
 
-          <Card>
-            <Card.Header>Recent Meals</Card.Header>
-            <Card.Body>
+          <Card className="mt-4">
+            <Card.Header className="bg-white">
+              <h4 className="mb-0">Recent Meals</h4>
+            </Card.Header>
+            <Card.Body style={{ maxHeight: '400px', overflowY: 'auto' }}>
               {nutritionLogs.map(log => (
                 <Card key={log.id} className="mb-3">
                   <Card.Header>
@@ -458,11 +464,11 @@ const NutritionTracker = () => {
         </Col>
       </Row>
 
-      <Row className="mb-4">
+      <Row className="mt-4">
         <Col md={12}>
           <Card>
-            <Card.Header className="bg-info text-white">
-              <h5 className="mb-0">Nutrition Recommendations</h5>
+            <Card.Header className="bg-white">
+              <h4 className="mb-0">Nutrition Recommendations</h4>
             </Card.Header>
             <Card.Body>
               {recommendations.length > 0 ? (
